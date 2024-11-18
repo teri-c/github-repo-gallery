@@ -2,6 +2,10 @@
 const profileInfo = document.querySelector(".overview");
 // Ul to display the repos list
 const repoList = document.querySelector(".repo-list");
+// Section where ALL the repo info appears
+const repoInfoSection = document.querySelector(".repos");
+// Section where the individual repo data appears
+const repoDataSection = document.querySelector(".repo-data");
 
 const username = "teri-c";
 
@@ -53,5 +57,47 @@ const displayRepoInfo = function (repos) {
         li.innerHTML = `<h3>${repo.name}</h3>`;
         repoList.append(li);
     }
+};
 
+// Click event for the UL repo list
+repoList.addEventListener("click", function (e) {
+    if (e.target.matches("h3")) {
+        const repoName = e.target.innerText;
+        specificRepoInfo(repoName);
+    }
+}); 
+
+// Function to get specific repo info
+const specificRepoInfo = async function (repoName) {
+    const res = await fetch(`https://api.github.com/repos/${username}/${repoName}`);
+    const repoInfo = await res.json();
+    console.log(repoInfo);
+
+    const fetchLanguages = await fetch(repoInfo.languages_url);
+    const languageData = await fetchLanguages.json();
+    console.log(languageData);
+
+    const languages = [];
+
+    for (let key in languageData) {
+        languages.push(key);
+    }
+    console.log(languages);
+
+    displaySpecificRepoInfo(repoInfo, languages);
+};
+
+// Function to display the specific repo info
+const displaySpecificRepoInfo = function (repoInfo, languages) {
+    repoDataSection.innerHTML = "";
+    const div = document.createElement("div");
+    div.innerHTML = `
+    <h3>Name: ${repoInfo.name}</h3>
+        <p>Description: ${repoInfo.description}</p>
+        <p>Default Branch: ${repoInfo.default_branch}</p>
+        <p>Languages: ${languages.join(", ")}</p>
+        <a class="visit" href="${repoInfo.html_url}" target="_blank" rel="noreferrer noopener">View Repo on GitHub!</a>`;
+    repoDataSection.append(div);
+    repoDataSection.classList.remove("hide");
+    repoInfoSection.classList.add("hide");
 };
